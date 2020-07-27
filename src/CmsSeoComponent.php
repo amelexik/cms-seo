@@ -21,6 +21,7 @@ use skeeks\yii2\form\fields\HtmlBlock;
 use skeeks\yii2\form\fields\NumberField;
 use skeeks\yii2\form\fields\SelectField;
 use skeeks\yii2\form\fields\TextareaField;
+use skeeks\yii2\form\fields\TextField;
 use skeeks\yii2\form\fields\WidgetField;
 use yii\base\ActionEvent;
 use yii\base\BootstrapInterface;
@@ -136,6 +137,11 @@ class CmsSeoComponent extends Component implements BootstrapInterface
     public $sitemap_min_date = 1593591722;
 
     /**
+     * @var int
+     */
+    public $sitemap_content_element_page_size = 500;
+
+    /**
      * @var string
      */
     public $contentIds = [];
@@ -211,6 +217,7 @@ class CmsSeoComponent extends Component implements BootstrapInterface
             ['header_content', 'string'],
             [['contentIds', 'treeTypeIds'], 'safe'],
             ['sitemap_min_date', 'integer'],
+            ['sitemap_content_element_page_size', 'integer'],
             ['title_append', 'string'],
         ]);
     }
@@ -230,6 +237,7 @@ class CmsSeoComponent extends Component implements BootstrapInterface
             'contentIds'              => \Yii::t('skeeks/cms', 'Elements of content'),
             'sitemap_min_date'        => \Yii::t('skeeks/seo', 'Минимальная дата обновления ссылки'),
             'treeTypeIds'             => \Yii::t('skeeks/seo', 'Types of tree'),
+            'treeTypeIds'             => \Yii::t('skeeks/seo', 'Content Elements Page Size'),
         ]);
     }
 
@@ -248,6 +256,8 @@ class CmsSeoComponent extends Component implements BootstrapInterface
             'treeTypeIds'             => \Yii::t('skeeks/seo', 'If nothing is selected, then all'),
             'sitemap_min_date'        => \Yii::t('skeeks/seo',
                 'Если будет задан этот параметр, то ни в одной ссылке не будет указано даты обновления меньше этой. Используется для переиндексации всех страниц.'),
+            'sitemap_content_element_page_size'        => \Yii::t('skeeks/seo',
+                'Количество елементов контента на одной странице'),
 
         ]);
     }
@@ -373,10 +383,12 @@ HTML;
                     ],
                     'contentIds'        => [
                         'class' => SelectField::class,
+                        'multiple' => true,
                         'items' => \skeeks\cms\models\CmsContent::getDataForSelect(),
                     ],
                     'treeTypeIds'       => [
                         'class' => SelectField::class,
+                        'multiple' => true,
                         'items' => \yii\helpers\ArrayHelper::map(
                             \skeeks\cms\models\CmsTreeType::find()->all(), 'id', 'name'
                         ),
@@ -387,6 +399,9 @@ HTML;
                         'widgetConfig' => [
                             'type' => \kartik\datecontrol\DateControl::FORMAT_DATE,
                         ],
+                    ],
+                    'sitemap_content_element_page_size'  => [
+                        'class'        => TextField::class,
                     ],
                 ],
             ],

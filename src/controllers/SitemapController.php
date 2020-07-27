@@ -8,8 +8,10 @@
 
 namespace skeeks\cms\seo\controllers;
 
+use skeeks\cms\models\CmsContent;
 use skeeks\cms\models\CmsContentElement;
 use skeeks\cms\models\Tree;
+use skeeks\cms\seo\vendor\UrlHelper;
 use yii\helpers\Url;
 use yii\web\Controller;
 use yii\web\Response;
@@ -29,9 +31,8 @@ class SitemapController extends Controller
 
         $result = [];
 
+        $this->_addContents($result);
         $this->_addTrees($result);
-        $this->_addElements($result);
-        $this->_addAdditional($result);
 
         \Yii::$app->response->format = Response::FORMAT_XML;
         $this->layout = false;
@@ -42,6 +43,30 @@ class SitemapController extends Controller
         ]);
 
         return;
+    }
+
+    /**
+     * @param $code
+     * @param $page
+     */
+    public function actionContent($code, $page)
+    {
+        ini_set("memory_limit", "512M");
+
+        $result = [];
+
+        $this->_addElements($result, $code, $page);
+
+        \Yii::$app->response->format = Response::FORMAT_XML;
+        $this->layout = false;
+
+        //Генерация sitemap вручную, не используем XmlResponseFormatter
+        \Yii::$app->response->content = $this->render($this->action->id, [
+            'data' => $result
+        ]);
+
+        return;
+
     }
 
     /**
@@ -70,9 +95,45 @@ class SitemapController extends Controller
                 if (!$tree->redirect && !$tree->redirect_tree_id) {
                     $data[] =
                         [
-                            "loc" => $tree->absoluteUrl,
+                            "loc"     => $tree->absoluteUrl,
                             "lastmod" => $this->_lastMod($tree),
                         ];
+                }
+            }
+        }
+
+        return $this;
+    }
+
+
+    protected function _addContents(&$data = [])
+    {
+
+        if (!\Yii::$app->seo->contentIds) {
+            return;
+        }
+
+        $query = CmsContent::find()
+            ->select(['*', '(select count(*) FROM cms_content_element cce WHERE cce.content_id = cc.id AND cce.active = "Y" AND cce.published_at <= NOW()) as count'])
+            ->from('cms_content cc')
+            ->where(['id' => \Yii::$app->seo->contentIds]);
+
+        $contents = $query->orderBy(['updated_at' => SORT_DESC, 'priority' => SORT_ASC])->all();
+
+        //Добавление элементов в карту
+        if ($contents) {
+            /**
+             * @var CmsContent $model
+             */
+            foreach ($contents as $model) {
+
+                $pages = ceil($model->raw_row['count'] / \Yii::$app->seo->sitemap_content_element_page_size);
+
+                for ($p = 1; $p <= $pages; $p++) {
+                    $data[] = [
+                        "loc"     => Url::to(['/seo/sitemap/content', 'code' => $model->code, 'page' => $p], true),
+                        "lastmod" => $this->_lastMod($model),
+                    ];
                 }
             }
         }
@@ -99,20 +160,30 @@ class SitemapController extends Controller
      * @param array $data
      * @return $this
      */
-    protected function _addElements(&$data = [])
+    protected function _addElements(&$data = [], $contentCode, $page = 1)
     {
+        if (!$cmsContent = CmsContent::findOne(['code' => $contentCode]))
+            return;
+
         $query = CmsContentElement::find()
             ->joinWith('cmsTree')
             ->andWhere([Tree::tableName() . '.cms_site_id' => \Yii::$app->skeeks->site->id]);
+
+        $query->andWhere(['content_id' => $cmsContent->id]);
 
 
         if (\Yii::$app->seo->activeContentElem) {
             $query->andWhere([CmsContentElement::tableName() . '.active' => 'Y']);
         }
 
-        if (\Yii::$app->seo->contentIds) {
-            $query->andWhere(['content_id' => \Yii::$app->seo->contentIds]);
-        }
+
+        /**
+         * calculate offset
+         */
+        $offset = 0;
+        if ($page > 1) $offset = ($page - 1) * \Yii::$app->seo->sitemap_content_element_page_size;
+        $query->offset($offset);
+        $query->limit(\Yii::$app->seo->sitemap_content_element_page_size);
 
         $elements = $query->orderBy(['updated_at' => SORT_DESC, 'priority' => SORT_ASC])->all();
 
@@ -124,7 +195,7 @@ class SitemapController extends Controller
             foreach ($elements as $model) {
                 $data[] =
                     [
-                        "loc" => $model->absoluteUrl,
+                        "loc"     => $model->absoluteUrl,
                         "lastmod" => $this->_lastMod($model),
                     ];
             }

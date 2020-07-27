@@ -11,9 +11,9 @@ return [
         'i18n' => [
             'translations' => [
                 'skeeks/seo' => [
-                    'class' => 'yii\i18n\PhpMessageSource',
+                    'class'    => 'yii\i18n\PhpMessageSource',
                     'basePath' => '@skeeks/cms/seo/messages',
-                    'fileMap' => [
+                    'fileMap'  => [
                         'skeeks/seo' => 'main.php',
                     ],
                 ]
@@ -22,8 +22,9 @@ return [
 
         'urlManager' => [
             'rules' => [
-                'robots.txt' => '/seo/robots/on-request',
-                'sitemap.xml' => '/seo/sitemap/on-request',
+                'robots.txt'                                   => '/seo/robots/on-request',
+                'sitemap/content-<code:[\w-]+>-<page:\d+>.xml' => '/seo/sitemap/content',
+                'sitemap.xml'                                  => '/seo/sitemap/on-request',
             ]
         ]
     ],
