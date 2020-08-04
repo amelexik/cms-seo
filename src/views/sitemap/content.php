@@ -14,12 +14,12 @@ HTML;
 <!--	Created by <?= \Yii::$app->cms->descriptor->name; ?> -->
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-    <? foreach ($data as $item) : ?>
+    <?php foreach ($data as $item) : ?>
         <url>
             <loc><?= $item['loc']; ?></loc>
-            <? if (isset($item['lastmod'])) : ?>
-                <lastmod><?= $item['lastmod']; ?></lastmod><? endif; ?>
-
+            <?php if (isset($item['lastmod'])) : ?>
+                <lastmod><?= $item['lastmod']; ?></lastmod>
+            <?php endif; ?>
         </url>
-    <? endforeach; ?>
+    <?php endforeach; ?>
 </urlset>

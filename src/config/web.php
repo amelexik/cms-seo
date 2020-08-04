@@ -24,6 +24,7 @@ return [
             'rules' => [
                 'robots.txt'                                   => '/seo/robots/on-request',
                 'sitemap/content-<code:[\w-]+>-<page:\d+>.xml' => '/seo/sitemap/content',
+                'sitemap/google-<code:[\w-]+>-<page:\d+>.xml'  => '/seo/sitemap/google',
                 'sitemap.xml'                                  => '/seo/sitemap/on-request',
             ]
         ]

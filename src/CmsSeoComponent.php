@@ -237,7 +237,7 @@ class CmsSeoComponent extends Component implements BootstrapInterface
             'contentIds'              => \Yii::t('skeeks/cms', 'Elements of content'),
             'sitemap_min_date'        => \Yii::t('skeeks/seo', 'Минимальная дата обновления ссылки'),
             'treeTypeIds'             => \Yii::t('skeeks/seo', 'Types of tree'),
-            'treeTypeIds'             => \Yii::t('skeeks/seo', 'Content Elements Page Size'),
+            'sitemap_content_element_page_size' => \Yii::t('skeeks/seo', 'Content Elements Page Size'),
         ]);
     }
 
